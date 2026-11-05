@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Questionable Decisions Club</title>
+<meta name="description" content="A big loud group video stage for adults with bad ideas and good stories. Rooms of 20, endless overflow.">
+<meta property="og:title" content="The Questionable Decisions Club">
+<meta property="og:description" content="Cameras on, mics on, judgment off. Join a room of 20 and make a bad decision.">
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#2a0f1c;--panel:#3b1829;--ink:#f6e9d7;--mute:#c9a9a0;--gold:#f2b134;--pink:#ff6f91;--teal:#2bb5a0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root{--bg:#f6e9d7;--panel:#ecd6bd;--ink:#2a0f1c;--mute:#6b4a43;--gold:#b87400;--pink:#c93c62;--teal:#13806f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Work Sans",system-ui,sans-serif;min-height:100vh}
+h1,h2{font-family:"Bowlby One",Impact,sans-serif;font-weight:400;margin:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:.7em 1.3em;background:var(--gold);color:#2a0f1c;font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.gate{max-width:560px;margin:0 auto;padding:12vh 20px 40px}
+.gate h1{font-size:clamp(2.4rem,9vw,4.2rem);line-height:.95;transform:rotate(-2deg);color:var(--gold)}
+.gate p{color:var(--mute);line-height:1.5}
+.gate input[type=text]{width:100%;padding:.8em 1em;border-radius:12px;border:2px solid var(--pink);background:var(--panel);color:var(--ink);font:inherit;margin:14px 0}
+label.chk{display:flex;gap:10px;align-items:flex-start;margin:6px 0 18px;line-height:1.4}
+.rules{background:var(--panel);border-left:6px solid var(--pink);padding:12px 16px;border-radius:8px;margin:18px 0;font-size:.95rem}
+.stage{display:none;height:100vh;flex-direction:column}
+.top{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--panel);flex-wrap:wrap}
+.top h2{font-size:1.2rem;color:var(--gold)}
+.count{font-weight:600;color:var(--teal)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{background:var(--bg);color:var(--mute);padding:3px 10px;font-size:.8rem}
+.prompt{background:var(--gold);color:#2a0f1c;padding:10px 16px;font-weight:600;display:none;text-align:center}
+.body{flex:1;display:flex;min-height:0}
+.grid{flex:1;overflow:auto;padding:14px;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-content:start}
+.tile{aspect-ratio:4/3;border-radius:14px;position:relative;overflow:hidden;display:grid;place-items:center;font-size:2.4rem;border:3px solid transparent;cursor:pointer}
+.tile.big{grid-column:span 2;grid-row:span 2}
+.tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile .nm{position:absolute;left:8px;bottom:6px;font-size:.78rem;background:rgba(0,0,0,.55);color:#fff;padding:2px 8px;border-radius:999px}
+.tile.speaking{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
+.tile .act{position:absolute;top:6px;right:6px;display:flex;gap:4px}
+.tile .act button{padding:.2em .6em;font-size:.7rem;background:rgba(0,0,0,.6);color:#fff}
+.tile .hand{position:absolute;top:6px;left:8px;font-size:1.3rem}
+.chat{display:none;width:280px;flex-direction:column;background:var(--panel)}
+.chat.open{display:flex}
+.msgs{flex:1;overflow:auto;padding:10px;font-size:.9rem;line-height:1.35}
+.msgs b{color:var(--gold)}
+.chat input{margin:8px;padding:.6em .9em;border-radius:999px;border:2px solid var(--pink);background:var(--bg);color:var(--ink);font:inherit}
+.bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px;background:var(--panel)}
+.bar .alt{background:var(--bg);color:var(--ink)}
+.bar .off{background:var(--pink);color:#fff}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--pink);color:#fff;padding:.6em 1.2em;border-radius:12px;display:none;z-index:9;max-width:90vw;text-align:center}
+.float{position:fixed;bottom:80px;font-size:2rem;pointer-events:none;animation:up 1.6s ease-out forwards;z-index:8}
+@keyframes up{to{transform:translateY(-220px);opacity:0}}
+@media(max-width:700px){.chat.open{position:fixed;inset:auto 0 60px 0;height:45vh;width:auto;z-index:6}}
+</style>
+</head>
+<body>
+<div id="toast" role="status"></div>
+<main class="gate" id="gate">
+  <h1>The Questionable Decisions Club</h1>
+  <p>A big loud stage for grown-ups with bad ideas and good stories. Cameras on, mics on, judgment off.</p>
+  <div class="rules"><strong>House rules:</strong> adults only, clothes on, no harassment. Break them and you get booted.</div>
+  <input type="text" id="nick" maxlength="20" placeholder="Pick a nickname" aria-label="Nickname">
+  <label class="chk"><input type="checkbox" id="age"> I’m 18 or older and I’ll keep it clothed.</label>
+  <button id="enter">Take the stage</button>
+  <p id="note" style="font-size:.9rem"></p>
+</main>
+
+<section class="stage" id="stage">
+  <div class="top">
+    <h2 id="rname"></h2>
+    <span class="count" id="rcount"></span>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="prompt" id="prompt"></div>
+  <div class="body">
+    <div class="grid" id="grid"></div>
+    <aside class="chat" id="chat"><div class="msgs" id="msgs"></div><input id="msg" maxlength="200" placeholder="Say something (be nice)" aria-label="Chat message"></aside>
+  </div>
+  <div class="bar">
+    <button class="alt rx" data-e="🍻" aria-label="Cheers">🍻</button><button class="alt rx" data-e="😂" aria-label="Laugh">😂</button><button class="alt rx" data-e="🔥" aria-label="Fire">🔥</button><button class="alt rx" data-e="👏" aria-label="Clap">👏</button>
+    <button id="mic" class="alt">Mute</button>
+    <button id="cam" class="alt">Camera off</button>
+    <button id="hand" class="alt">✋ Raise hand</button>
+    <button id="chatbtn" class="alt">Chat</button>
+    <button id="roul" class="alt">Bad idea roulette</button>
+    <button id="inv" class="alt">Copy invite</button>
+    <button id="leave" class="off">Leave</button>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js"></script>
+<script>
+(function(){
+var L=window.LivekitClient,CAP=20,$=function(i){return document.getElementById(i)};
+var NAMES=["The Bad Ideas Bar","Regret Rooftop","Second Wind Lounge","Hangover Hotel","Last Call Diner"];
+var TOPICS=["Confessions and bad takes","Karaoke without shame","Roast your own résumé","Dares nobody asked for","Show and tell: worst purchase"];
+var PROMPTS=["Confess the worst haircut you’ve ever paid for.","Pitch a business idea that is obviously a pyramid scheme.","What’s the dumbest thing you’ve done for a dare?","Read your last text to your ex out loud. Or lie about it.","What would your drunk self put on a business card?"];
+var EMOJI=["🍻","🥴","😎","🤠","🦆","🍕","🎤","🪩","🤡","🐊"],COLORS=["#8e2f52","#2b6f6a","#7a5c1e","#5b3a8c","#a24b2a","#2e5a88"],RX=["🍻","😂","🔥","👏"];
+var room=null,myNum=0,tiles={},blocked={},switching=false,poll=null,name="";
+function rname(n){var l=NAMES.length;return NAMES[(n-1)%l]+(n>l?" "+Math.ceil(n/l):"")}
+function hash(s){var x=0;for(var i=0;i<s.length;i++)x=(x*31+s.charCodeAt(i))>>>0;return x}
+function toast(t){var e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(function(){e.style.display="none"},3200)}
+function api(path,body){return fetch(path,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:undefined).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||"Something broke.");return j})})}
+function say(who,t){var m=$("msgs"),d=document.createElement("div"),b=document.createElement("b");b.textContent=who+": ";d.appendChild(b);d.appendChild(document.createTextNode(t));m.appendChild(d);m.scrollTop=m.scrollHeight}
+function floatE(e){var f=document.createElement("span");f.className="float";f.textContent=e;f.style.left=(20+Math.random()*60)+"vw";document.body.appendChild(f);setTimeout(function(){f.remove()},1700)}
+function send(o){if(room)room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(o)),{reliable:true})}
+function count(){if(room)$("rcount").textContent=(1+room.remoteParticipants.size)+" / "+CAP+" on stage"}
+
+function tile(p){
+  if(tiles[p.identity])return tiles[p.identity];
+  var h=hash(p.identity),t=document.createElement("div");
+  t.className="tile";t.style.background=COLORS[h%COLORS.length];
+  var e=document.createElement("span");e.className="emo";e.textContent=EMOJI[h%EMOJI.length];
+  var n=document.createElement("span");n.className="nm";n.textContent=(p.name||"Guest")+(p.isLocal?" (you)":"");
+  t.appendChild(e);t.appendChild(n);
+  if(!p.isLocal){
+    var a=document.createElement("div");a.className="act";
+    [["Report",function(){api("/api/report",{room:myNum,identity:p.identity,name:p.name}).then(function(){toast("Reported "+(p.name||"guest")+".")}).catch(function(x){toast(x.message)})}],
+     ["Block",function(){block(p)}]].forEach(function(x){var b=document.createElement("button");b.textContent=x[0];b.onclick=function(ev){ev.stopPropagation();x[1]()};a.appendChild(b)});
+    t.appendChild(a);
+  }
+  t.onclick=function(){t.classList.toggle("big")};
+  $("grid").appendChild(t);tiles[p.identity]=t;return t}
+function removeTile(p){var t=tiles[p.identity];if(t){t.remove();delete tiles[p.identity]}
+  document.querySelectorAll("audio").forEach(function(a){if(a.dataset.who===p.identity)a.remove()})}
+function block(p){blocked[p.identity]=1;p.trackPublications.forEach(function(pub){pub.setSubscribed(false)});removeTile(p);toast("Blocked "+(p.name||"guest")+".")}
+function attach(tr,p){
+  if(blocked[p.identity])return;
+  if(tr.kind==="video"){var t=tile(p),old=t.querySelector("video");if(old)old.remove();
+    var v=tr.attach();v.playsInline=true;if(p.isLocal)v.style.transform="scaleX(-1)";
+    t.insertBefore(v,t.firstChild);t.querySelector(".emo").style.display="none"}
+  else if(!p.isLocal){var a=tr.attach();a.dataset.who=p.identity;document.body.appendChild(a)}}
+function detach(tr,p){tr.detach().forEach(function(el){el.remove()});
+  if(tr.kind==="video"&&tiles[p.identity])tiles[p.identity].querySelector(".emo").style.display=""}
+
+function onData(buf,p){
+  var d;try{d=JSON.parse(new TextDecoder().decode(buf))}catch(e){return}
+  if(!p||blocked[p.identity])return;
+  if(d.t==="chat"&&typeof d.m==="string")say(p.name||"Guest",d.m.slice(0,200));
+  else if(d.t==="rx"&&RX.indexOf(d.e)>-1)floatE(d.e);
+  else if(d.t==="hand"&&tiles[p.identity]){var t=tiles[p.identity],h=t.querySelector(".hand");
+    if(d.v&&!h){h=document.createElement("span");h.className="hand";h.textContent="✋";t.appendChild(h)}else if(!d.v&&h)h.remove()}}
+
+function loadRooms(){api("/api/rooms").then(function(list){
+  var c=$("chips");c.innerHTML="";
+  list.forEach(function(r){var b=document.createElement("button");b.textContent=rname(r.n)+": "+r.count+"/"+r.cap;
+    b.disabled=r.n===myNum||r.count>=r.cap;b.onclick=function(){enter(r.n)};c.appendChild(b)})}).catch(function(){})}
+
+function cleanup(){Object.keys(tiles).forEach(function(k){tiles[k].remove()});tiles={};blocked={};
+  document.querySelectorAll("audio").forEach(function(a){a.remove()});$("msgs").innerHTML="";clearInterval(poll)}
+function showGate(){cleanup();room=null;$("stage").style.display="none";$("gate").style.display="block"}
+
+function enter(want){
+  var btn=$("enter");btn.disabled=true;
+  var prev=room;
+  api("/api/join",{name:name,adult:true,room:want||0}).then(function(j){
+    if(prev){switching=true;prev.disconnect();cleanup();switching=false}
+    room=new L.Room({adaptiveStream:true,dynacast:true});myNum=j.room;
+    var R=L.RoomEvent;
+    room.on(R.ParticipantConnected,function(p){tile(p);count()})
+      .on(R.ParticipantDisconnected,function(p){removeTile(p);count()})
+      .on(R.TrackSubscribed,function(tr,pub,p){if(blocked[p.identity])pub.setSubscribed(false);else attach(tr,p)})
+      .on(R.TrackUnsubscribed,function(tr,pub,p){detach(tr,p)})
+      .on(R.LocalTrackPublished,function(pub,p){if(pub.track&&pub.kind==="video")attach(pub.track,p)})
+      .on(R.LocalTrackUnpublished,function(pub,p){if(pub.track&&pub.kind==="video")detach(pub.track,p)})
+      .on(R.ActiveSpeakersChanged,function(sp){Object.keys(tiles).forEach(function(k){tiles[k].classList.remove("speaking")});
+        sp.forEach(function(s){if(tiles[s.identity])tiles[s.identity].classList.add("speaking")})})
+      .on(R.DataReceived,onData)
+      .on(R.Disconnected,function(){if(!switching){toast("You left the stage.");showGate()}});
+    return room.connect(j.url,j.token).then(function(){
+      $("gate").style.display="none";$("stage").style.display="flex";
+      $("rname").textContent=rname(myNum)+" – "+TOPICS[(myNum-1)%TOPICS.length];
+      tile(room.localParticipant);room.remoteParticipants.forEach(function(p){tile(p)});count();
+      if(!want&&myNum>1)toast("Earlier rooms were full, so you’re in "+rname(myNum)+".");
+      room.startAudio().catch(function(){});
+      return room.localParticipant.setCameraEnabled(true).then(function(){return room.localParticipant.setMicrophoneEnabled(true)})
+        .catch(function(){$("note").textContent="";toast("Camera or mic was blocked. Allow access in your browser to be seen and heard.")})
+    }).then(function(){loadRooms();poll=setInterval(loadRooms,10000)});
+  }).catch(function(e){toast(e.message||"Could not join.");$("note").textContent=e.message||""})
+  .then(function(){btn.disabled=false});
+}
+
+$("enter").onclick=function(){
+  name=$("nick").value.trim();
+  if(!name){toast("Pick a nickname first.");return}
+  if(!$("age").checked){toast("Check the box to confirm you’re 18 or older.");return}
+  enter(0)};
+$("mic").onclick=function(e){if(!room)return;var on=room.localParticipant.isMicrophoneEnabled;
+  room.localParticipant.setMicrophoneEnabled(!on).then(function(){e.target.textContent=on?"Unmute":"Mute"}).catch(function(){toast("No mic available.")})};
+$("cam").onclick=function(e){if(!room)return;var on=room.localParticipant.isCameraEnabled;
+  room.localParticipant.setCameraEnabled(!on).then(function(){e.target.textContent=on?"Camera on":"Camera off"}).catch(function(){toast("No camera available.")})};
+var hand=false;
+$("hand").onclick=function(e){hand=!hand;send({t:"hand",v:hand});e.target.textContent=hand?"✋ Lower hand":"✋ Raise hand";
+  var t=room&&tiles[room.localParticipant.identity],h=t&&t.querySelector(".hand");
+  if(hand&&t&&!h){h=document.createElement("span");h.className="hand";h.textContent="✋";t.appendChild(h)}else if(!hand&&h)h.remove()};
+$("chatbtn").onclick=function(){$("chat").classList.toggle("open")};
+$("msg").onkeydown=function(e){if(e.key==="Enter"&&this.value.trim()){var m=this.value.trim();say(name+" (you)",m);send({t:"chat",m:m});this.value=""}};
+document.querySelectorAll(".rx").forEach(function(b){b.onclick=function(){floatE(b.dataset.e);send({t:"rx",e:b.dataset.e})}});
+$("roul").onclick=function(){var p=$("prompt");p.textContent=PROMPTS[Math.floor(Math.random()*PROMPTS.length)];p.style.display="block"};
+$("inv").onclick=function(){var u=location.origin;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){toast("Invite link copied. Send it to your worst friends.")}).catch(function(){toast("Copy this link: "+u)})};
+$("leave").onclick=function(){if(room)room.disconnect()};
+})();
+</script>
+</body>
+</html>
